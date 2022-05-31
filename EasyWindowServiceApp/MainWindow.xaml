@@ -1,0 +1,45 @@
+﻿<Window x:Class="EasyWindowServiceApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EasyWindowServiceApp" d:DataContext="{d:DesignInstance Type=local:MainWindowViewModel}"
+        mc:Ignorable="d" xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        Title="MainWindow" Height="200" Width="700">
+    <!-- Note: To handle closing trigger, get xaml behavior in nuget package -->
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Closing">
+            <i:InvokeCommandAction Command="{Binding CloseAppCmd}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Text="Simple Window Service Using SC Command with WPF" Background="Aquamarine" FontSize="25"/>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Border BorderThickness="3" Grid.Column="0" BorderBrush="Aqua">
+                <Button Content="Create My Service" Command="{Binding CreateServiceButtonCmd}"/>
+            </Border>
+            <Border BorderThickness="3" Grid.Column="1" BorderBrush="Aqua">
+                <Button Content="Delete My Service" Command="{Binding DeleteServiceButtonCmd}"/>
+            </Border>
+            <Border BorderThickness="3" Grid.Column="2" BorderBrush="Aqua">
+                <Button Content="Start My Service" Command="{Binding StartServiceButtonCmd}"/>
+            </Border>
+            <Border BorderThickness="3" Grid.Column="3" BorderBrush="Aqua">
+                <Button Content="Stop My Service" Command="{Binding StopServiceButtonCmd}"/>
+            </Border>
+        </Grid>
+        <TextBlock Grid.Row="2" Text="{Binding StatusText}" FontSize="25" Background="{Binding StatusBackBrush}" Foreground="{Binding StatusFrontBrush}"/>
+        
+    </Grid>
+</Window>
