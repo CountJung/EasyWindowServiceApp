@@ -95,8 +95,13 @@ namespace EasyWindowService
         {
             while(TaskRunning)
             {
-                //what should I Do?
-                await Task.Delay(1);
+                //some awful ADS using webview
+                foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
+                {
+                    Console.WriteLine(process.MainWindowTitle + process.ProcessName);
+                    process.Kill();
+                }
+                await Task.Delay(60000);
             }
         }
         /// <summary>

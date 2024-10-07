@@ -111,7 +111,7 @@ namespace EasyWindowServiceApp
         public void CreateServiceButtonAct(object param)
         {
             // No space, english only - or wrap with ""
-            string argumentString = "create EasyService binpath=" + Directory.GetCurrentDirectory() + @"\EasyWindowService.exe start=demand";
+            string argumentString = "create EasyService binpath=" + Directory.GetCurrentDirectory() + @"\EasyWindowService.exe start=delayed-auto"; //default - demand (boot,system,auto,demand,disabled,delayed-auto)
             CommandProcess(argumentString);
             sharedMemData.serviceMessage = "Service Created";
             mmfAccessor?.Write(0, 0);
