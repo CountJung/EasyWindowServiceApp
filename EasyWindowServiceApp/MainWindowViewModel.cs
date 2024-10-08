@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Management;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -117,6 +118,32 @@ namespace EasyWindowServiceApp
             mmfAccessor?.Write(0, 0);
             mmfAccessor?.Write(4, sharedMemData.serviceMessage.Length);
             mmfAccessor?.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
+            //foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
+            //{
+            //    Console.WriteLine(process.MainWindowTitle + process.ProcessName + process.Id);
+            //    Console.WriteLine("Process version- " + process.MainModule?.FileVersionInfo.FileVersion);
+            //    Console.WriteLine("Process description- " + process.MainModule?.FileVersionInfo.FileDescription);
+            //}
+            //GetProcessInformations();
+        }
+        public static void GetProcessInformations()
+        {
+            var searcher = new ManagementObjectSearcher("Select * From Win32_Process where Name = 'msedgewebview2.exe'");
+            var processList = searcher.Get();
+
+            foreach (var process in processList)
+            {
+                var processName = process["Name"];
+                var processPath = process["ExecutablePath"];
+
+                if (processPath != null)
+                {
+                    var fileVersionInfo = FileVersionInfo.GetVersionInfo(processPath.ToString()!);
+                    var processDescription = fileVersionInfo.FileDescription;
+
+                    Console.WriteLine("{0} - {1}", processName, processDescription);
+                }
+            }
         }
         public void DeleteServiceButtomAct(object param)
         {
@@ -160,6 +187,10 @@ namespace EasyWindowServiceApp
                 case 1:
                     StatusBackBrush = Brushes.Tan;
                     StatusFrontBrush = Brushes.Olive;
+                    break;
+                case 2:
+                    StatusBackBrush = Brushes.LightBlue;
+                    StatusFrontBrush = Brushes.DarkBlue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(statCode));

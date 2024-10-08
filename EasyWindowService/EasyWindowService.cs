@@ -95,11 +95,26 @@ namespace EasyWindowService
         {
             while(TaskRunning)
             {
-                //some awful ADS using webview
-                foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
+                try
                 {
-                    Console.WriteLine(process.MainWindowTitle + process.ProcessName);
-                    process.Kill();
+                    //test
+                    foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
+                    {
+                        Log.Information("Process kill - " + process.MainWindowTitle + process.ProcessName);
+                        Log.Information("Process version - " + process.MainModule?.FileVersionInfo.FileVersion);
+                        Log.Information("Process description - " + process.MainModule?.FileVersionInfo.FileDescription);
+                        process.Kill();
+                    }
+                    sharedMemData.statusCode = 1;
+                    sharedMemData.serviceMessage = "Service Running";
+                    sharedMemData.messageSize = sharedMemData.serviceMessage.Length;
+                    mmfAccessor.Write(0, sharedMemData.statusCode);
+                    mmfAccessor.Write(4, sharedMemData.serviceMessage.Length);
+                    mmfAccessor.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
+                }
+                catch(Exception ex)
+                {
+                    Log.Fatal(ex.ToString());
                 }
                 await Task.Delay(60000);
             }
