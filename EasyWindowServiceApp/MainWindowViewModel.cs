@@ -29,11 +29,11 @@ namespace EasyWindowServiceApp
         /// Properties
         /// </summary>
         private Brush statusBackBrush;
-        public Brush StatusBackBrush { get => statusBackBrush; set => Set(ref statusBackBrush, value, "StatusBackBrush"); }
+        public Brush StatusBackBrush { get => statusBackBrush; set => Set(ref statusBackBrush, value, nameof(StatusBackBrush)); }
         private Brush statusFrontBrush;
-        public Brush StatusFrontBrush { get => statusFrontBrush; set => Set(ref statusFrontBrush, value, "StatusFrontBrush"); }
+        public Brush StatusFrontBrush { get => statusFrontBrush; set => Set(ref statusFrontBrush, value, nameof(StatusFrontBrush)); }
         private string statusText;
-        public string StatusText { get=>statusText; set=>Set(ref statusText, value, "StatusText"); }
+        public string StatusText { get=>statusText; set=>Set(ref statusText, value, nameof(StatusText)); }
         public bool AppRunning { get; set; }
 
         /// <summary>
@@ -112,18 +112,12 @@ namespace EasyWindowServiceApp
         public void CreateServiceButtonAct(object param)
         {
             // No space, english only - or wrap with ""
-            string argumentString = "create EasyService binpath=" + Directory.GetCurrentDirectory() + @"\EasyWindowService.exe start=delayed-auto"; //default - demand (boot,system,auto,demand,disabled,delayed-auto)
+            string argumentString = "create EasyService binpath=" + Directory.GetCurrentDirectory() + @"\EasyWindowService.exe start=auto"; //default - demand (boot,system,auto,demand,disabled,delayed-auto)
             CommandProcess(argumentString);
             sharedMemData.serviceMessage = "Service Created";
             mmfAccessor?.Write(0, 0);
             mmfAccessor?.Write(4, sharedMemData.serviceMessage.Length);
             mmfAccessor?.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
-            //foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
-            //{
-            //    Console.WriteLine(process.MainWindowTitle + process.ProcessName + process.Id);
-            //    Console.WriteLine("Process version- " + process.MainModule?.FileVersionInfo.FileVersion);
-            //    Console.WriteLine("Process description- " + process.MainModule?.FileVersionInfo.FileDescription);
-            //}
             //GetProcessInformations();
         }
         public static void GetProcessInformations()

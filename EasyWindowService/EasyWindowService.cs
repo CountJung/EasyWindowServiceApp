@@ -1,11 +1,7 @@
 ﻿using Serilog;
-using Serilog.Formatting.Compact;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.ServiceProcess;
@@ -32,8 +28,9 @@ namespace EasyWindowService
         private readonly long shareMemSize = 1024;
         private MMFSharedData sharedMemData;
         //private readonly byte[] mmfBuffer;
-        private readonly string logFile = @"D:\Log\log.txt";
-        
+        //private readonly string logFile = @"D:\Log\log.txt";
+        private readonly EventLog serviceEventLog = new EventLog("EasyServiceEvent");
+
         public bool TaskRunning { get; set; }
 
         public EasyWindowService()
@@ -46,13 +43,14 @@ namespace EasyWindowService
         {
             // TODO: 여기에 서비스를 시작하는 코드를 추가합니다.
             sharedMemData = new MMFSharedData();
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(logFile, rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true).CreateLogger();
+            //Log.Logger = new LoggerConfiguration().MinimumLevel.Information().WriteTo.File(logFile, rollingInterval: RollingInterval.Day, rollOnFileSizeLimit: true).CreateLogger();
+            serviceEventLog.Source = "EasyServiceEvent";
             try
             {
-                Log.Information("Service Start");
-
+                //Log.Information("Service Start");
+                serviceEventLog.WriteEntry("Service Start", EventLogEntryType.Information, 1);
                 TaskRunning = true;
-                mmfService = MemoryMappedFile.CreateOrOpen(@"Global\EasyService",shareMemSize,MemoryMappedFileAccess.ReadWrite);
+                mmfService = MemoryMappedFile.CreateOrOpen(@"Global\EasyService", shareMemSize, MemoryMappedFileAccess.ReadWrite);
                 mmfAccessor = mmfService.CreateViewAccessor();
                 sharedMemData.statusCode = 1;
                 sharedMemData.serviceMessage = "Service Started";
@@ -61,11 +59,13 @@ namespace EasyWindowService
                 mmfAccessor.Write(4, sharedMemData.serviceMessage.Length);
                 mmfAccessor.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
                 serviceTask = Task.Run(() => TaskWorker());
-                Log.Information("Service Task Starting");
+                //Log.Information("Service Task Starting");
+                serviceEventLog.WriteEntry("EasyService Start", EventLogEntryType.Information, 1);
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "");
+                //Log.Fatal(ex, "");
+                serviceEventLog.WriteEntry(ex.ToString(), EventLogEntryType.Error, 99);
             }
         }
 
@@ -82,27 +82,33 @@ namespace EasyWindowService
                 mmfAccessor.Write(0, sharedMemData.statusCode);
                 mmfAccessor.Write(4, sharedMemData.serviceMessage.Length);
                 mmfAccessor.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
-                Log.Information("Service Stop");
+                //Log.Information("Service Stop");
+                serviceEventLog.WriteEntry("Service Stop", EventLogEntryType.Information, 0);
             }
             catch (Exception ex)
             {
-                Log.Fatal(ex, "");
+                //Log.Fatal(ex, "");
+                serviceEventLog.WriteEntry(ex.ToString(), EventLogEntryType.Error, 99);
             }
-            Log.CloseAndFlush();
+            //Log.CloseAndFlush();
         }
 
         public async void TaskWorker()
         {
-            while(TaskRunning)
+            while (TaskRunning)
             {
                 try
                 {
                     //test
                     foreach (var process in Process.GetProcesses().Where(pr => pr.ProcessName.Contains("webview2")))
                     {
-                        Log.Information("Process kill - " + process.MainWindowTitle + process.ProcessName);
-                        Log.Information("Process version - " + process.MainModule?.FileVersionInfo.FileVersion);
-                        Log.Information("Process description - " + process.MainModule?.FileVersionInfo.FileDescription);
+                        //Log.Information("Process kill - " + process.MainWindowTitle + process.ProcessName);
+                        //Log.Information("Process version - " + process.MainModule?.FileVersionInfo.FileVersion);
+                        //Log.Information("Process description - " + process.MainModule?.FileVersionInfo.FileDescription);
+                        serviceEventLog.WriteEntry($"Process = {process.MainWindowTitle + process.ProcessName} \n" +
+                            $"Process version = {process.MainModule?.FileVersionInfo.FileVersion} \n" +
+                            $"Process description = {process.MainModule?.FileVersionInfo.FileDescription}"
+                            , EventLogEntryType.Information, 1);
                         process.Kill();
                     }
                     sharedMemData.statusCode = 1;
@@ -112,9 +118,10 @@ namespace EasyWindowService
                     mmfAccessor.Write(4, sharedMemData.serviceMessage.Length);
                     mmfAccessor.WriteArray(8, Encoding.UTF8.GetBytes(sharedMemData.serviceMessage), 0, sharedMemData.serviceMessage.Length);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    Log.Fatal(ex.ToString());
+                    //Log.Fatal(ex.ToString());
+                    serviceEventLog.WriteEntry(ex.ToString(), EventLogEntryType.Error, 99);
                 }
                 await Task.Delay(60000);
             }
@@ -125,12 +132,14 @@ namespace EasyWindowService
         protected override void OnContinue()
         {
             base.OnContinue();
-            Log.Information("Continue Service");
+            //Log.Information("Continue Service");
+            serviceEventLog.WriteEntry("Continue Service", EventLogEntryType.Information, 1);
         }
         protected override void OnPause()
         {
             base.OnPause();
-            Log.Information("Pause Service");
+            //Log.Information("Pause Service");
+            serviceEventLog.WriteEntry("Pause Service", EventLogEntryType.Information, 1);
         }
     }
 }
